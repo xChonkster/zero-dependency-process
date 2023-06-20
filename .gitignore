@@ -20,6 +20,7 @@ mono_crash.*
 vcpkg_installed/
 
 # Build results
+msbuild/
 x86Release/
 x86Debug/
 x64Release/
