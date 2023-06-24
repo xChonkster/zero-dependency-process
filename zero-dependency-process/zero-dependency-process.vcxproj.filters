@@ -3,8 +3,12 @@
   <ItemGroup>
     <ClCompile Include="src\zero-dependency-process.cpp" />
     <ClCompile Include="src\crt\initializer\initializer.cpp" />
+    <ClCompile Include="src\winapi\string\string.cpp" />
+    <ClCompile Include="src\winapi\file\file.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\crt\crt.hpp" />
+    <ClInclude Include="src\winapi\winapi.hpp" />
+    <ClInclude Include="src\x86_64\x86_64.hpp" />
   </ItemGroup>
 </Project>

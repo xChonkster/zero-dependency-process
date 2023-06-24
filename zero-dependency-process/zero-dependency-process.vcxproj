@@ -19,6 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\winapi\file\file.cpp" />
     <ClCompile Include="src\zero-dependency-process.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -26,6 +27,11 @@
     <ClCompile Include="src\crt\initializer\initializer.cpp">
       <FileType>CppCode</FileType>
     </ClCompile>
+    <ClCompile Include="src\winapi\string\string.cpp">
+      <FileType>CppCode</FileType>
+    </ClCompile>
+    <ClInclude Include="src\winapi\winapi.hpp" />
+    <ClInclude Include="src\x86_64\x86_64.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
