@@ -39,17 +39,7 @@ inline bool __declspec(naked) is_cpuid_available()
 	}
 } // this function is pretty much completely and utterly useless, cpuid is 100% available, i just wanted to write it lol
 
-inline void __declspec(naked) load_global_descriptor_table()
-{
-	__asm
-	{
-		mov ax, cs
-
-			mov cs, ax
-
-	old_global_descriptor_table:
-		dd 0
-	}
-}
+extern "C" void mode_switch_to_64();
+extern "C" void mode_switch_to_32();
 
 } // namespace x64

@@ -11,4 +11,7 @@
     <ClInclude Include="src\winapi\winapi.hpp" />
     <ClInclude Include="src\x86_64\x86_64.hpp" />
   </ItemGroup>
+  <ItemGroup>
+    <NASM Include="src\x86_64\x86_64.asm" />
+  </ItemGroup>
 </Project>

@@ -10,6 +10,7 @@
 
 extern "C" void __cdecl WinMainCRTStartup()
 {
+	while ( true ) {}
 	crt::call_dynamic_initializers();
 
 	UNICODE_STRING uni_string{ 0 };
@@ -18,8 +19,10 @@ extern "C" void __cdecl WinMainCRTStartup()
 	{
 		RtlInitUnicodeString( &uni_string, L"Hello, World!" );
 
-		x64::load_global_descriptor_table();
+		x64::mode_switch_to_64();
+		x64::mode_switch_to_32();
 		
+		x64::is_cpuid_available();
 		// code from this point onward wont run lol
 	}
 }
