@@ -39,7 +39,7 @@ inline bool __declspec(naked) is_cpuid_available()
 	}
 } // this function is pretty much completely and utterly useless, cpuid is 100% available, i just wanted to write it lol
 
-extern "C" void mode_switch_to_64();
+extern "C" void mode_switch_to_64(); // need to rethink this, but it works now
 extern "C" void mode_switch_to_32();
 
 } // namespace x64
