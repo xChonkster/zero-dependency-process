@@ -9,14 +9,16 @@
 #include <stdint.h>
 
 // integer types
-typedef void* PVOID;
+typedef void* PVOID, * LPVOID;
 typedef unsigned long ULONG, * PULONG;
 typedef unsigned long ULONG_PTR, * PULONG_PTR;
+typedef unsigned long DWORD, * DWORD_PTR;
 typedef __int64 LARGE_INTEGER, * PLARGE_INTEGER;
 typedef long NTSTATUS;
 
 // handle types
 typedef void* HANDLE, * PHANDLE;
+typedef void* HMODULE;
 
 // misc types
 typedef uint32_t ACCESS_MASK;

@@ -19,49 +19,52 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\zero-dependency-process.cpp" />
+    <ClCompile Include="src\loader\loader.cpp" />
+    <ClCompile Include="src\winapi\file\file.cpp" />
+    <ClCompile Include="src\winapi\string\string.cpp" />
+    <ClInclude Include="src\x64-payload.hpp">
+      <FileType>CppCode</FileType>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\x86_64\x86_64.hpp" />
+    <NASM Include="src\x.asm" />
   </ItemGroup>
   <ItemGroup>
-    <NASM Include="src\x86_64\x86_64.asm">
-      <FileType>Document</FileType>
-    </NASM>
+    <ClInclude Include="src\winapi\winapi.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>16.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{0c792800-d3ab-4b52-8250-2534c0ff49c1}</ProjectGuid>
-    <RootNamespace>zerodependencyprocess</RootNamespace>
+    <ProjectGuid>{2aa6e649-0755-4a7c-9133-d6756cddef58}</ProjectGuid>
+    <RootNamespace>x64payload</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
-    <CharacterSet>MultiByte</CharacterSet>
+    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>Unicode</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v143</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <PlatformToolset>v143</PlatformToolset>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
@@ -82,22 +85,22 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)\bld\$(Configuration)\</OutDir>
     <IntDir>..\.msbuild\$(PlatformShortName)\$(ProjectName)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)\bld\$(Configuration)\</OutDir>
     <IntDir>..\.msbuild\$(PlatformShortName)\$(ProjectName)\</IntDir>
     <LinkIncremental>false</LinkIncremental>
     <EmbedManifest>false</EmbedManifest>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <OutDir>$(SolutionDir)\bld\$(Configuration)\</OutDir>
     <IntDir>..\.msbuild\$(PlatformShortName)\$(ProjectName)\</IntDir>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <OutDir>$(SolutionDir)\bld\$(Configuration)\</OutDir>
     <IntDir>..\.msbuild\$(PlatformShortName)\$(ProjectName)\</IntDir>
   </PropertyGroup>
@@ -106,88 +109,97 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
-      <WarningLevel>Level4</WarningLevel>
-      <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <WarningLevel>Level3</WarningLevel>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;_DEBUG;X64PAYLOAD_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PrecompiledHeaderFile />
-      <PrecompiledHeaderOutputFile />
-      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
-      <BuildStlModules>false</BuildStlModules>
-      <SupportJustMyCode>false</SupportJustMyCode>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+      <EnableUAC>false</EnableUAC>
     </Link>
-    <NASM>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </NASM>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
-      <WarningLevel>Level4</WarningLevel>
+      <WarningLevel>Level3</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>false</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <PreprocessorDefinitions>WIN32;NDEBUG;X64PAYLOAD_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
-      <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <PrecompiledHeaderFile />
-      <PrecompiledHeaderOutputFile />
-      <BufferSecurityCheck>false</BufferSecurityCheck>
-      <BuildStlModules>false</BuildStlModules>
-      <DebugInformationFormat>None</DebugInformationFormat>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
-      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableUAC>false</EnableUAC>
     </Link>
-    <MASM>
-      <GenerateDebugInformation>false</GenerateDebugInformation>
-    </MASM>
-    <NASM>
-      <GenerateDebugInformation>false</GenerateDebugInformation>
-    </NASM>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <WarningLevel>Level4</WarningLevel>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>_DEBUG;X64PAYLOAD_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <PrecompiledHeaderOutputFile />
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <SupportJustMyCode>false</SupportJustMyCode>
+      <BasicRuntimeChecks>Default</BasicRuntimeChecks>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <BuildStlModules>false</BuildStlModules>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableUAC>false</EnableUAC>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+      <NoEntryPoint>true</NoEntryPoint>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
+      <WarningLevel>Level4</WarningLevel>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <SDLCheck>false</SDLCheck>
+      <PreprocessorDefinitions>NDEBUG;X64PAYLOAD_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>
+      </PrecompiledHeaderFile>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
+      <LanguageStandard_C>stdc17</LanguageStandard_C>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <PrecompiledHeaderOutputFile />
+      <DebugInformationFormat>None</DebugInformationFormat>
+      <BufferSecurityCheck>false</BufferSecurityCheck>
+      <BuildStlModules>false</BuildStlModules>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <OptimizeReferences>false</OptimizeReferences>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+      <EnableUAC>false</EnableUAC>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+      <NoEntryPoint>true</NoEntryPoint>
+      <LinkTimeCodeGeneration>UseLinkTimeCodeGeneration</LinkTimeCodeGeneration>
     </Link>
+    <NASM>
+      <GenerateDebugInformation>false</GenerateDebugInformation>
+    </NASM>
   </ItemDefinitionGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

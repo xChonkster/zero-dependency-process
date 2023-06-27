@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="src\winapi\file\file.cpp" />
+    <ClCompile Include="src\winapi\string\string.cpp" />
+    <ClCompile Include="src\loader\loader.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <NASM Include="src\x.asm" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\winapi\winapi.hpp" />
+    <ClInclude Include="src\x64-payload.hpp" />
+  </ItemGroup>
+</Project>

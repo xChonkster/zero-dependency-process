@@ -19,12 +19,10 @@ mono_crash.*
 # vcpkg libraries
 vcpkg_installed/
 
+# Visual Studio Intermediate Directory
+.msbuild/
+
 # Build results
-msbuild/
-x86Release/
-x86Debug/
-x64Release/
-x64Debug
 [Dd]ebug/
 [Dd]ebugPublic/
 [Rr]elease/
