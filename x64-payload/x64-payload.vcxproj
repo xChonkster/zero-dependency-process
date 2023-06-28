@@ -22,12 +22,13 @@
     <ClCompile Include="src\loader\loader.cpp" />
     <ClCompile Include="src\winapi\file\file.cpp" />
     <ClCompile Include="src\winapi\string\string.cpp" />
+    <ClInclude Include="src\crt\crt.hpp" />
     <ClInclude Include="src\x64-payload.hpp">
       <FileType>CppCode</FileType>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <NASM Include="src\x.asm" />
+    <NASM Include="src\winapi\paging\paging.asm" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\winapi\winapi.hpp" />
@@ -167,6 +168,9 @@
       <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
       <NoEntryPoint>true</NoEntryPoint>
     </Link>
+    <NASM>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </NASM>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>

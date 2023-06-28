@@ -6,17 +6,17 @@
 
 #include "../winapi.hpp"
 
-extern NTSTATUS __stdcall NtCreateFile( _Out_ PHANDLE FileHandle,
-                                        _In_ ACCESS_MASK DesiredAccess,
-                                        _In_ POBJECT_ATTRIBUTES ObjectAttributes,
-                                        _Out_ PIO_STATUS_BLOCK IoStatusBlock,
-                                        _In_ PLARGE_INTEGER AllocationSize,
-                                        _In_ ULONG FileAttributes,
-                                        _In_ ULONG ShareAccess,
-                                        _In_ ULONG CreateDisposition,
-                                        _In_ ULONG CreateOptions,
-                                        _In_ PVOID EaBuffer,
-                                        _In_ ULONG EaLength )
+extern "C" NTSTATUS __stdcall NtCreateFile( _Out_ PHANDLE FileHandle,
+                                            _In_ ACCESS_MASK DesiredAccess,
+                                            _In_ POBJECT_ATTRIBUTES ObjectAttributes,
+                                            _Out_ PIO_STATUS_BLOCK IoStatusBlock,
+                                            _In_ PLARGE_INTEGER AllocationSize,
+                                            _In_ ULONG FileAttributes,
+                                            _In_ ULONG ShareAccess,
+                                            _In_ ULONG CreateDisposition,
+                                            _In_ ULONG CreateOptions,
+                                            _In_ PVOID EaBuffer,
+                                            _In_ ULONG EaLength )
 {
     // NtCreateFile = 0x77B32FD0
     // Wow64SystemServiceCall = 0x77B48AB0

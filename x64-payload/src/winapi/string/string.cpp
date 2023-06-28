@@ -8,8 +8,8 @@
 
 #include "../winapi.hpp"
 
-void __stdcall RtlInitUnicodeString( _Inout_ PUNICODE_STRING DestinationString,
-									 _In_ const wchar_t* SourceString )
+extern "C" void __stdcall RtlInitUnicodeString( _Inout_ PUNICODE_STRING DestinationString,
+												_In_ const wchar_t* SourceString )
 {
 	DestinationString->Length = 0;
 	DestinationString->MaximumLength = 0;

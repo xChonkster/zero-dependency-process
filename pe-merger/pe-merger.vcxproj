@@ -23,7 +23,6 @@
     <ClCompile Include="src\pe-merger.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\ex\ex.hpp" />
     <ClInclude Include="src\merge\merge.hpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -135,6 +134,7 @@
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <BuildStlModules>false</BuildStlModules>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -152,6 +152,7 @@
       <LanguageStandard>stdcpplatest</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <BuildStlModules>false</BuildStlModules>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

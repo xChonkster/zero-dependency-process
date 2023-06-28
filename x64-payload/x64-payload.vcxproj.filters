@@ -6,10 +6,11 @@
     <ClCompile Include="src\loader\loader.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <NASM Include="src\x.asm" />
-  </ItemGroup>
-  <ItemGroup>
     <ClInclude Include="src\winapi\winapi.hpp" />
     <ClInclude Include="src\x64-payload.hpp" />
+    <ClInclude Include="src\crt\crt.hpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <NASM Include="src\winapi\paging\paging.asm" />
   </ItemGroup>
 </Project>

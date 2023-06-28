@@ -5,7 +5,6 @@
     <ClCompile Include="src\merge\merge.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="src\ex\ex.hpp" />
     <ClInclude Include="src\merge\merge.hpp" />
   </ItemGroup>
 </Project>

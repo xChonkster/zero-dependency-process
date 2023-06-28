@@ -31,7 +31,7 @@ extern "C" void __cdecl WinMainCRTStartup()
     const IMAGE_OPTIONAL_HEADER32* host_optional_header = &(host_nt_headers->OptionalHeader);
 
     const auto host_last_section_header = reinterpret_cast<IMAGE_SECTION_HEADER*>(reinterpret_cast<char*>(const_cast<IMAGE_OPTIONAL_HEADER32*>(host_optional_header)) + host_file_header->SizeOfOptionalHeader) + host_file_header->NumberOfSections - 1;
-    char* parsed_pe_address = current_process_base + host_last_section_header->VirtualAddress + host_last_section_header->Misc.VirtualSize; // old size is written into .VirtualSize
+    char* parsed_pe_address = current_process_base + host_last_section_header->VirtualAddress + 0x200; // just assume 200 size...
     
     // parse (64 bit) merged pe at that section
     const auto payload_dos_header = reinterpret_cast<IMAGE_DOS_HEADER*>(parsed_pe_address);
@@ -49,7 +49,7 @@ extern "C" void __cdecl WinMainCRTStartup()
 
         if ( name[0] == '.' && name[1] == 'c' && name[2] == 'o' && name[3] == 'd' && name[4] == 'e' ) // name == ".code"
         {
-            const uintptr_t address = reinterpret_cast<uintptr_t>(const_cast<char*>(parsed_pe_address)) + payload_current_section->PointerToRawData;
+            const uintptr_t address = reinterpret_cast<uintptr_t>(const_cast<char*>(parsed_pe_address)) + payload_current_section->VirtualAddress;
 
             __asm
             {
