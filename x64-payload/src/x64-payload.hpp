@@ -8,9 +8,12 @@
 
 void payload_entry_point()
 {
-	int a = 0;
+	void* memory = VirtualAlloc( NULL, 0x1000, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE );
 
-	a |= 0xFFFFFFFFF;
+	DWORD old_prot{ 0 };
+	VirtualProtect( memory, 0x1000, PAGE_EXECUTE_READ, &old_prot );
+
+	// crash at the end of this function (obviously)
 }
 
 void payload_entry_point_end()

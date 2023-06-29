@@ -30,7 +30,7 @@ void merge( const std::string& host, const std::string& payload )
 	const auto host_nt_headers = reinterpret_cast<IMAGE_NT_HEADERS32*>(host_memory + host_dos_header->e_lfanew);
 
 	const IMAGE_FILE_HEADER* host_file_header = &(host_nt_headers->FileHeader); // shouldnt be const...
-	const IMAGE_OPTIONAL_HEADER32* host_optional_header = &(host_nt_headers->OptionalHeader); // shouldnt be const
+	const IMAGE_OPTIONAL_HEADER32* host_optional_header = &(host_nt_headers->OptionalHeader); // shouldnt be const...
 
 	const auto host_last_section_header = reinterpret_cast<IMAGE_SECTION_HEADER*>(reinterpret_cast<char*>(const_cast<IMAGE_OPTIONAL_HEADER32*>(host_optional_header)) + host_file_header->SizeOfOptionalHeader) + host_file_header->NumberOfSections - 1;
 
@@ -50,10 +50,12 @@ void merge( const std::string& host, const std::string& payload )
 
 	// change host last section size
 	const unsigned long file_alignment = host_optional_header->FileAlignment;
+	const unsigned long section_alignment = host_optional_header->SectionAlignment;
 
-	const_cast<IMAGE_OPTIONAL_HEADER32*>(host_optional_header)->SizeOfImage += static_cast<DWORD>(payload_virtual_memory_size); // image doesnt run without this
+	const_cast<IMAGE_OPTIONAL_HEADER32*>(host_optional_header)->SizeOfImage += (static_cast<DWORD>(payload_virtual_memory_size) + section_alignment - 1) & ~(section_alignment - 1); // image doesnt run without this
+
 	host_last_section_header->Misc.VirtualSize += static_cast<DWORD>(payload_virtual_memory_size);
-	host_last_section_header->SizeOfRawData = (host_last_section_header->SizeOfRawData + static_cast<DWORD>(payload_virtual_memory_size) + file_alignment - 1) & ~(file_alignment - 1);
+	host_last_section_header->SizeOfRawData += (static_cast<DWORD>(payload_virtual_memory_size) + file_alignment - 1) & ~(file_alignment - 1);
 
 	// mark section as executable
 	host_last_section_header->Characteristics |= IMAGE_SCN_MEM_EXECUTE; // very hacky, probably shouldnt do this

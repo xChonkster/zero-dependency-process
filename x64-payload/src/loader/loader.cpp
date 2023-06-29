@@ -9,21 +9,25 @@
 #include "../winapi/winapi.hpp"
 #include "../crt/crt.hpp"
 
-#pragma code_seg(push, ".code")
+#include <windows.h>
 
-void create_and_run_64_bit_payload()
+// text bounds
+
+__declspec(dllexport) extern "C" void create_and_run_64_bit_payload(void* base)
 {
+	
+
+	/*
 	// calculate required size
-	const size_t payload_entry_point_size = reinterpret_cast<uintptr_t>(payload_entry_point_end) - reinterpret_cast<uintptr_t>(payload_entry_point);
+	const uintptr_t text_section_size = reinterpret_cast<intptr_t>(&text_section_end) - reinterpret_cast<intptr_t>(&text_section_start);
 
-	// allocate some memory
-	void* memory = VirtualAlloc( reinterpret_cast<LPVOID>(0x10000000000), payload_entry_point_size, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+	// allocate memory
+	void* memory = VirtualAlloc( reinterpret_cast<LPVOID>(0x10000000000), text_section_size, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 
-	// copy the function
-	memcpy( memory, payload_entry_point, payload_entry_point_size );
+	// copy .text & .code
+	memcpy( memory, &text_section_start, text_section_size );
 
-	// call the copied function
-	(reinterpret_cast<decltype(&payload_entry_point)>(memory))();
-}
-
-#pragma code_seg(pop)
+	// call entry point at address
+	(reinterpret_cast<decltype(&payload_entry_point)>(reinterpret_cast<uintptr_t>(memory) + (reinterpret_cast<uintptr_t>(payload_entry_point) - reinterpret_cast<uintptr_t>(&text_section_start))))();
+	*/
+} // theres deffo better solutions to this problem, if i were to remake this project i'd have done alot of things differently

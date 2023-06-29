@@ -8,17 +8,25 @@
 
 #include <stdint.h>
 
-// macros
+// page state macros
 constexpr uintptr_t MEM_COMMIT = 0x00001000;
 constexpr uintptr_t MEM_RESERVE = 0x00002000;
+
+// page protection macros
+constexpr uintptr_t PAGE_EXECUTE_READ = 0x20;
 constexpr uintptr_t PAGE_EXECUTE_READWRITE = 0x40;
+
+// NTSTATUS macros
+constexpr uint32_t TRUE = 1;
+constexpr uint32_t FALSE = 0;
 
 // integer types
 typedef void* PVOID, * LPVOID;
 typedef unsigned long ULONG, * PULONG;
 typedef unsigned __int64 SIZE_T, * PSIZE_T, ULONG_PTR, * PULONG_PTR;
-typedef unsigned long DWORD, * DWORD_PTR;
+typedef unsigned long DWORD, * PDWORD, * DWORD_PTR;
 typedef __int64 LARGE_INTEGER, * PLARGE_INTEGER;
+typedef int BOOL;
 typedef long NTSTATUS;
 
 // handle types
@@ -62,6 +70,11 @@ constexpr HANDLE GetCurrentProcess()
     return reinterpret_cast<HANDLE>(-1);
 }
 
+constexpr bool NT_SUCCESS( NTSTATUS Status )
+{
+    return (Status >= 0);
+}
+
 // string.cpp
 extern "C" void __stdcall RtlInitUnicodeString( _Inout_ PUNICODE_STRING DestinationString,
                                                 _In_ const wchar_t* SourceString );
@@ -81,42 +94,71 @@ extern "C" NTSTATUS __stdcall NtCreateFile( _Out_ PHANDLE FileHandle,
 
 // paging.cpp
 
-// // VirtualAllocEx calls VirtualAllocExNuma(..., 0xFFFFFFFF); (https://cdn.discordapp.com/attachments/765576637265739789/1123379513020121178/image.png)
-// calls NtAllocateVirtualMemory(...); (https://cdn.discordapp.com/attachments/765576637265739789/1123380022305099916/image.png)
-
 // VirtualAlloc
+
 extern "C" NTSTATUS __stdcall NtAllocateVirtualMemory(_In_ HANDLE ProcessHandle,
                                                      _Inout_ PVOID BaseAddress,
                                                      _In_ ULONG_PTR ZeroBits,
-                                                     _In_ PSIZE_T RegionSize,
+                                                     _Inout_ PSIZE_T RegionSize,
                                                      _In_ ULONG AllocationType,
                                                      _In_ ULONG Protect );
 
-inline LPVOID __stdcall VirtualAllocEx(_In_ HANDLE hProcess,
-                                           _In_opt_ LPVOID lpAddress,
-                                           _In_ SIZE_T dwSize,
-                                           _In_ DWORD flAllocationType,
-                                           _In_ DWORD flProtect )
+inline LPVOID __stdcall VirtualAllocEx( _In_ HANDLE hProcess,
+                                        _In_opt_ LPVOID lpAddress,
+                                        _In_ SIZE_T dwSize,
+                                        _In_ DWORD flAllocationType,
+                                        _In_ DWORD flProtect )
 {
     flProtect &= ~0x3Fu;
 
     ULONG_PTR RegionSize = dwSize;
     PVOID BaseAddress = lpAddress;
 
-    NTSTATUS Status = NtAllocateVirtualMemory( hProcess, &BaseAddress, 0u, &RegionSize, flAllocationType, flProtect );
-    if ( Status >= 0 )
+    if ( NT_SUCCESS( NtAllocateVirtualMemory( hProcess, &BaseAddress, 0u, &RegionSize, flAllocationType, flProtect ) ) )
         return BaseAddress;
 
-    return 0;
+    return NULL;
 }
 
 inline LPVOID VirtualAlloc( _In_opt_ LPVOID lpAddress,
-                               _In_ SIZE_T dwSize,
-                               _In_ DWORD flAllocationType,
-                               _In_ DWORD flProtect )
+                            _In_ SIZE_T dwSize,
+                            _In_ DWORD flAllocationType,
+                            _In_ DWORD flProtect )
 {
     return VirtualAllocEx( GetCurrentProcess(), lpAddress, dwSize, flAllocationType, flProtect );
 }
 
-// VirtualFree
-// ...
+// VirtualProtect
+
+extern "C" NTSTATUS __stdcall NtProtectVirtualMemory( _In_ HANDLE Processhandle,
+                                                      _Inout_ PVOID BaseAddress,
+                                                      _Inout_ PSIZE_T NumberOfBytesToProtect,
+                                                      _In_ ULONG NewAccessProtection,
+                                                      _Out_ PULONG OldAccessProtection );
+
+inline BOOL __stdcall VirtualProtectEx( _In_ HANDLE hProcess,
+                                        _In_ LPVOID lpAddress,
+                                        _In_ SIZE_T dwSize,
+                                        _In_ DWORD flNewProtect,
+                                        _Out_ PDWORD lpflOldProtect )
+{
+    SIZE_T MemoryLength = dwSize;
+    PVOID MemoryCache = lpAddress;
+
+    if ( NT_SUCCESS( NtProtectVirtualMemory( hProcess, &MemoryCache, &MemoryLength, flNewProtect, lpflOldProtect ) ) )
+        return TRUE;
+
+    return FALSE;
+}
+
+inline BOOL __stdcall VirtualProtect( _In_ LPVOID lpAddress,
+                                      _In_ SIZE_T dwSize,
+                                      _In_ DWORD flNewProtect,
+                                      _Out_ PDWORD lpflOldProtect )
+{
+    return VirtualProtectEx( GetCurrentProcess(), lpAddress, dwSize, flNewProtect, lpflOldProtect );
+}
+
+// NtUnmapViewOfSection
+
+

@@ -42,7 +42,7 @@ extern "C" void __cdecl WinMainCRTStartup()
 
     auto payload_current_section = reinterpret_cast<IMAGE_SECTION_HEADER*>(reinterpret_cast<char*>(const_cast<IMAGE_OPTIONAL_HEADER64*>(payload_optional_header)) + payload_file_header->SizeOfOptionalHeader);
 
-    // look for .code section
+    // look for .code section (could just export loader function but meh)
     for ( int index = 0; index < payload_file_header->NumberOfSections; index++, payload_current_section++ )
     {
         const char* name = reinterpret_cast<char*>(payload_current_section->Name);
