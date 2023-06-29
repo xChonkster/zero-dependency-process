@@ -9,25 +9,30 @@
 #include "../winapi/winapi.hpp"
 #include "../crt/crt.hpp"
 
-#include <windows.h>
-
-// text bounds
-
-__declspec(dllexport) extern "C" void create_and_run_64_bit_payload(void* base)
+extern "C" __declspec(dllexport) void create_and_run_64_bit_payload(char* base)
 {
-	
+	const auto dos_header = reinterpret_cast<IMAGE_DOS_HEADER*>(base);
+	const auto nt_headers = reinterpret_cast<IMAGE_NT_HEADERS64*>(base + dos_header->e_lfanew);
 
-	/*
-	// calculate required size
-	const uintptr_t text_section_size = reinterpret_cast<intptr_t>(&text_section_end) - reinterpret_cast<intptr_t>(&text_section_start);
+	IMAGE_FILE_HEADER* file_header = &(nt_headers->FileHeader);
+	IMAGE_OPTIONAL_HEADER64* optional_header = &(nt_headers->OptionalHeader);
 
-	// allocate memory
-	void* memory = VirtualAlloc( reinterpret_cast<LPVOID>(0x10000000000), text_section_size, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+	// where were mapping
+	char* memory = reinterpret_cast<char*>(VirtualAlloc( reinterpret_cast<LPVOID>(0x10000000000), optional_header->SizeOfImage, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE));
 
-	// copy .text & .code
-	memcpy( memory, &text_section_start, text_section_size );
+	// get first section
+	auto current_section_header = reinterpret_cast<IMAGE_SECTION_HEADER*>(reinterpret_cast<char*>(optional_header) + file_header->SizeOfOptionalHeader);
 
-	// call entry point at address
-	(reinterpret_cast<decltype(&payload_entry_point)>(reinterpret_cast<uintptr_t>(memory) + (reinterpret_cast<uintptr_t>(payload_entry_point) - reinterpret_cast<uintptr_t>(&text_section_start))))();
-	*/
-} // theres deffo better solutions to this problem, if i were to remake this project i'd have done alot of things differently
+	// map sections
+	for ( int index = 0; index < file_header->NumberOfSections; current_section_header++, index++ )
+	{
+		// only map sections we can execute
+		if ( current_section_header->Characteristics & IMAGE_SCN_MEM_EXECUTE )
+		{
+			memcpy( memory + current_section_header->VirtualAddress, base + current_section_header->VirtualAddress, current_section_header->SizeOfRawData );
+		}
+	}
+
+	// call mapped entry point
+	(reinterpret_cast<decltype(&payload_entry_point)>(memory + (reinterpret_cast<uintptr_t>(payload_entry_point) - reinterpret_cast<uintptr_t>(base))))();
+}

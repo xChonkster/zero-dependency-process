@@ -8,6 +8,16 @@
 
 #include <windows.h>
 #include <winnt.h>
+#include <stdint.h>
+
+// string compare func
+bool are_strings_equal( const char* str1, const char* str2 )
+{
+    while ( *str1 == *str2 && (*str1 && *str2) )
+            str1++, str2++;
+            
+    return !static_cast<bool>(*str1 - *str2);
+} // couldnt use strcmp lol
 
 // PEB struct type
 typedef struct _PEB {
@@ -27,39 +37,52 @@ extern "C" void __cdecl WinMainCRTStartup()
     const auto host_dos_header = reinterpret_cast<IMAGE_DOS_HEADER*>(current_process_base);
     const auto host_nt_headers = reinterpret_cast<IMAGE_NT_HEADERS32*>(current_process_base + host_dos_header->e_lfanew);
 
-    const IMAGE_FILE_HEADER* host_file_header = &(host_nt_headers->FileHeader);
-    const IMAGE_OPTIONAL_HEADER32* host_optional_header = &(host_nt_headers->OptionalHeader);
+    IMAGE_FILE_HEADER* host_file_header = &(host_nt_headers->FileHeader);
+    IMAGE_OPTIONAL_HEADER32* host_optional_header = &(host_nt_headers->OptionalHeader);
 
-    const auto host_last_section_header = reinterpret_cast<IMAGE_SECTION_HEADER*>(reinterpret_cast<char*>(const_cast<IMAGE_OPTIONAL_HEADER32*>(host_optional_header)) + host_file_header->SizeOfOptionalHeader) + host_file_header->NumberOfSections - 1;
-    char* parsed_pe_address = current_process_base + host_last_section_header->VirtualAddress + 0x200; // just assume 200 size...
+    const auto host_last_section_header = reinterpret_cast<IMAGE_SECTION_HEADER*>(reinterpret_cast<char*>(host_optional_header) + host_file_header->SizeOfOptionalHeader) + host_file_header->NumberOfSections - 1;
+    char* parsed_pe_address = current_process_base + host_last_section_header->VirtualAddress; // merger inserts its own section
     
     // parse (64 bit) merged pe at that section
-    const auto payload_dos_header = reinterpret_cast<IMAGE_DOS_HEADER*>(parsed_pe_address);
-    const auto payload_nt_headers = reinterpret_cast<IMAGE_NT_HEADERS64*>(parsed_pe_address + payload_dos_header->e_lfanew);
+    const auto dos_header = reinterpret_cast<IMAGE_DOS_HEADER*>(parsed_pe_address);
+    const auto nt_headers = reinterpret_cast<IMAGE_NT_HEADERS64*>(parsed_pe_address + dos_header->e_lfanew);
 
-    const IMAGE_FILE_HEADER* payload_file_header = &(payload_nt_headers->FileHeader);
-    const IMAGE_OPTIONAL_HEADER64* payload_optional_header = &(payload_nt_headers->OptionalHeader);
+    //const IMAGE_FILE_HEADER* file_header = &(nt_headers->FileHeader);
+    const IMAGE_OPTIONAL_HEADER64* optional_header = &(nt_headers->OptionalHeader);
 
-    auto payload_current_section = reinterpret_cast<IMAGE_SECTION_HEADER*>(reinterpret_cast<char*>(const_cast<IMAGE_OPTIONAL_HEADER64*>(payload_optional_header)) + payload_file_header->SizeOfOptionalHeader);
+    // get export directory
+    const IMAGE_DATA_DIRECTORY* export_data_entry = &optional_header->DataDirectory[IMAGE_DIRECTORY_ENTRY_EXPORT];
 
-    // look for .code section (could just export loader function but meh)
-    for ( int index = 0; index < payload_file_header->NumberOfSections; index++, payload_current_section++ )
+    IMAGE_EXPORT_DIRECTORY* export_directory = reinterpret_cast<IMAGE_EXPORT_DIRECTORY*>(parsed_pe_address + export_data_entry->VirtualAddress);
+    
+    uint32_t* address_of_names = reinterpret_cast<uint32_t*>(parsed_pe_address + export_directory->AddressOfNames);
+    const uint32_t* address_of_names_end = address_of_names + export_directory->NumberOfNames;
+
+    uint32_t ordinal = 0u;
+
+    // look for exported loader func
+    for (uint32_t* current_name_rva = address_of_names; current_name_rva < address_of_names_end; current_name_rva++, ordinal++ )
     {
-        const char* name = reinterpret_cast<char*>(payload_current_section->Name);
+        const char* current_name = reinterpret_cast<char*>(parsed_pe_address + *current_name_rva);
 
-        if ( name[0] == '.' && name[1] == 'c' && name[2] == 'o' && name[3] == 'd' && name[4] == 'e' ) // name == ".code"
-        {
-            const uintptr_t address = reinterpret_cast<uintptr_t>(const_cast<char*>(parsed_pe_address)) + payload_current_section->VirtualAddress;
-
-            __asm
-            {
-                // set up the call
-                push address
-
-                // JUMP!
-                jmp x64::mode_switch_to_64
-            }
-        }
+        if ( are_strings_equal( current_name, "create_and_run_64_bit_payload" ) ) // almost didnt have a reloc table
+            break;
     }
-}
+
+    // get the address of the export
+    uint32_t* export_table_offset = reinterpret_cast<uint32_t*>(parsed_pe_address + export_directory->AddressOfFunctions) + ordinal;
+    uintptr_t export_address = reinterpret_cast<uintptr_t>(parsed_pe_address + *export_table_offset);
+
+    __asm
+    {
+        // set up the call
+        push export_address
+
+        // arg base address of mapped module
+        mov ecx, parsed_pe_address
+
+        // JUMP!
+        jmp x64::mode_switch_to_64
+    }
+} // i would just like to say that this code worked first time
 
