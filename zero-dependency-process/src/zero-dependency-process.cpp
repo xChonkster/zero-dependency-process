@@ -75,6 +75,9 @@ extern "C" void __cdecl WinMainCRTStartup()
 
     __asm
     {
+        // reserve stack space
+        sub esp, 32
+
         // set up the call
         push export_address
 

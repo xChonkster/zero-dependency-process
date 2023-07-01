@@ -1,7 +1,7 @@
 /*
 *	winapi.hpp
 * 
-*	reimplementation of some winapi funcs (the ones that arent syscalls)
+*	reimplementation of some winapi stuff
 */
 
 #pragma once
@@ -12,6 +12,9 @@
 constexpr uint32_t MEM_COMMIT = 0x00001000;
 constexpr uint32_t MEM_RESERVE = 0x00002000;
 
+// page dealloc macros
+constexpr uint32_t MEM_RELEASE = 0x00008000;
+
 // page protection macros
 constexpr uint32_t PAGE_EXECUTE_READ = 0x20;
 constexpr uint32_t PAGE_EXECUTE_READWRITE = 0x40;
@@ -19,30 +22,44 @@ constexpr uint32_t PAGE_EXECUTE_READWRITE = 0x40;
 // section characteristics macros
 constexpr uint32_t IMAGE_SCN_MEM_EXECUTE = 0x20000000;
 
+constexpr uint32_t MEM_IMAGE = 0x1000000;
+constexpr uint32_t MEM_MAPPED = 0x40000;
+constexpr uint32_t MEM_PRIVATE = 0x20000;
+
+// this makes sense
+typedef long NTSTATUS;
+
+// NTSTATUS error codes
+constexpr NTSTATUS STATUS_INVALID_PARAMETER = 0xC000000DL;
+
 // NTSTATUS macros
 constexpr uint32_t TRUE = 1;
 constexpr uint32_t FALSE = 0;
 
 // pointer types
 typedef void* PVOID, * LPVOID;
+typedef const void* LPCVOID;
 typedef unsigned long* PULONG;
-typedef unsigned long* PDWORD, * DWORD_PTR;
+typedef unsigned long* PDWORD;
+typedef unsigned __int64 *PULONG_PTR;
+typedef unsigned __int64* PSIZE_T;
 typedef __int64* PLARGE_INTEGER;
-typedef unsigned __int64* PSIZE_T, *PULONG_PTR;
 
 // integer types
-typedef unsigned char BYTE;
-typedef unsigned short WORD;
+typedef unsigned char BYTE, UCHAR;
+typedef unsigned short WORD, USHORT;
 typedef long LONG;
-typedef unsigned long ULONG;
 typedef unsigned long DWORD;
+typedef unsigned long ULONG;
+typedef unsigned __int64 DWORD_PTR;
+typedef unsigned __int64 ULONG_PTR;
+typedef unsigned __int64 SIZE_T;
 typedef __int64 ULONGLONG;
 typedef __int64 LARGE_INTEGER;
-typedef unsigned __int64 SIZE_T, ULONG_PTR;
 
 // misc types
+typedef unsigned char BOOLEAN;
 typedef int BOOL;
-typedef long NTSTATUS;
 
 // handle types
 typedef void* HANDLE, * PHANDLE;
@@ -76,8 +93,32 @@ typedef struct _IO_STATUS_BLOCK
         NTSTATUS Status;
         PVOID Pointer;
     };
+
     ULONG_PTR Information;
 } IO_STATUS_BLOCK, * PIO_STATUS_BLOCK;
+
+typedef struct _LIST_ENTRY
+{
+    struct _LIST_ENTRY* Flink;
+    struct _LIST_ENTRY* Blink; // its so tempting to just name these next and previous...
+} LIST_ENTRY, * PLIST_ENTRY;
+
+typedef struct _MEMORY_BASIC_INFORMATION
+{
+    PVOID BaseAddress;
+    PVOID AllocationBase;
+    DWORD AllocationProtect;
+    WORD PartitionId;
+    SIZE_T RegionSize;
+    DWORD State;
+    DWORD Protect;
+    DWORD Type;
+} MEMORY_BASIC_INFORMATION, * PMEMORY_BASIC_INFORMATION;
+
+typedef enum _MEMORY_INFORMATION_CLASS
+{
+    MemoryBasicInformation
+} MEMORY_INFORMATION_CLASS;
 
 // PE header type structs
 typedef struct _IMAGE_DOS_HEADER {      // DOS .EXE header
@@ -158,10 +199,12 @@ typedef struct _IMAGE_NT_HEADERS64 {
 
 typedef struct _IMAGE_SECTION_HEADER {
     BYTE    Name[8]; // IMAGE_SIZEOF_SHORT_NAME = 8
+
     union {
             DWORD   PhysicalAddress;
             DWORD   VirtualSize;
     } Misc;
+
     DWORD   VirtualAddress;
     DWORD   SizeOfRawData;
     DWORD   PointerToRawData;
@@ -172,13 +215,138 @@ typedef struct _IMAGE_SECTION_HEADER {
     DWORD   Characteristics;
 } IMAGE_SECTION_HEADER, *PIMAGE_SECTION_HEADER;
 
+// PEB structs
+typedef struct _PEB_LDR_DATA // https://www.geoffchappell.com/studies/windows/km/ntoskrnl/inc/api/ntpsapi_x/peb_ldr_data.htm?tx=185
+{
+    ULONG Length;
+    BOOLEAN Initialized;
+    PVOID SsHandle;
+    LIST_ENTRY InLoadOrderModuleList;
+    LIST_ENTRY InMemoryOrderModuleList;
+    LIST_ENTRY InInitializationOrderModuleList;
+    PVOID EntryInProgress;
+    BOOLEAN ShutdownInProgress;
+    HANDLE ShutdownThreadId;
+} PEB_LDR_DATA, * PPEB_LDR_DATA;
+
+typedef struct _LDR_DATA_TABLE_ENTRY // https://www.geoffchappell.com/studies/windows/km/ntoskrnl/inc/api/ntldr/ldr_data_table_entry/index.htm
+{
+    LIST_ENTRY InLoadOrderLinks;
+    LIST_ENTRY InMemoryOrderLinks;
+
+    union
+    {
+        LIST_ENTRY InInitializationOrderLinks;
+        LIST_ENTRY InProgressLinks;
+    };
+
+    PVOID DllBase;
+    PVOID EntryPoint;
+    ULONG SizeOfImage;
+
+    // ...
+} LDR_DATA_TABLE_ENTRY, *PLDR_DATA_TABLE_ENTRY;
+
+typedef struct _RTL_USER_PROCESS_PARAMETERS
+{
+    ULONG MaximumLength;
+    ULONG Length;
+    ULONG Flags;
+    ULONG DebugFlags;
+    HANDLE CloseHandle;
+    ULONG ConsoleFlags;
+    HANDLE StandardInput; //
+    HANDLE StandardOutput; //
+    HANDLE StandardError; // all 3 used in kernel32.dll!GetStdHandle (https://cdn.discordapp.com/attachments/765576637265739789/1124373733184913508/image.png)
+    UCHAR CurrentDirectory[24]; // wtf is `CURDIR` ? (probably UNICODE_STRING without MaximumLength field...)
+    UNICODE_STRING DllPath; 
+    UNICODE_STRING ImagePathName;
+    UNICODE_STRING CommandLine;
+    PVOID Environment;
+    ULONG StartingX;
+    ULONG StartingY;
+    ULONG CountX;
+    ULONG CountY;
+    ULONG CountCharsX;
+    ULONG CountCharsY;
+    ULONG FileAttribute;
+    ULONG WindowFlags;
+    ULONG ShowWindowFlags;
+    UNICODE_STRING WindowTitle;
+    UNICODE_STRING DesktopInfo;
+    UNICODE_STRING ShellInfo;
+    UNICODE_STRING RuntimeData;
+    
+    // ...
+} RTL_USER_PROCESS_PARAMETERS, * PRTL_USER_PROCESS_PARAMETERS;
+
+typedef struct _PEB // https://www.geoffchappell.com/studies/windows/km/ntoskrnl/inc/api/pebteb/peb/index.htm
+{
+    BOOLEAN InheritedAddressSpace;
+    BOOLEAN ReadImageFileExecOptions;
+    BOOLEAN BeingDebugged;
+
+    union
+    {
+        UCHAR BitField;
+        struct
+        {
+            UCHAR ImageUsedLargePages : 1;
+            UCHAR IsProtectedProcess : 1;
+            UCHAR IsImageDynamicallyRelocated : 1;
+            UCHAR SkipPatchingUser32Forwarders : 1;
+            UCHAR IsPackagedProcess : 1;
+            UCHAR IsAppContainer : 1;
+            UCHAR IsProtectedProcessLight : 1;
+            UCHAR IsLongPathAwareProcess : 1;
+        } BitFieldBits;
+    };
+
+#if defined(_WIN64)
+    //UCHAR Padding0[4];
+#endif
+    HANDLE Mutant;
+    PVOID ImageBaseAddress;
+    PEB_LDR_DATA* Ldr;
+    RTL_USER_PROCESS_PARAMETERS* ProcessParemeters;
+    PVOID SubSystemData;
+    PVOID ProcessHeap; // used in kernel32.dll!GetProcessHeap (https://cdn.discordapp.com/attachments/765576637265739789/1124360735405916170/image.png)
+
+    // ...
+} PEB, * PPEB;
+
+// TIB structs
+typedef struct _NT_TIB32
+{
+    UCHAR Padding0[4];
+    uint32_t StackBase;
+    uint32_t StackLimit;
+} NT_TIB32, * PNT_TIB32;
+
+typedef struct _TEB32 // https://cdn.discordapp.com/attachments/765576637265739789/1124754924878704670/image.png
+{
+    NT_TIB32 NtTib;
+    // 4 + 4 + 4 = 12 = 0xC
+    UCHAR Padding0[0xE00]; // 0x1478 - 0x18
+    uint32_t DeallocationStack;
+    // 0xE00 + 0x4 = 0xE04
+    UCHAR Padding1[0x168];
+    uint32_t GuaranteedStackBytes;
+
+    // ...
+} TEB32, * PTEB32;
+
+// CONTAINING_RECORD macro
+#define CONTAINING_RECORD(address, type, field) \
+    reinterpret_cast<type*>((uint8_t*)(address) - reinterpret_cast<uintptr_t>(&(reinterpret_cast<type*>(0)->field)))
+
 // psuedo stuff
 constexpr HANDLE GetCurrentProcess()
 {
     return reinterpret_cast<HANDLE>(-1);
 }
 
-constexpr bool NT_SUCCESS( NTSTATUS Status )
+constexpr bool NT_SUCCESS( _In_ NTSTATUS Status )
 {
     return (Status >= 0);
 }
@@ -267,6 +435,64 @@ inline BOOL __stdcall VirtualProtect( _In_ LPVOID lpAddress,
     return VirtualProtectEx( GetCurrentProcess(), lpAddress, dwSize, flNewProtect, lpflOldProtect );
 }
 
+// VirtualFree
+
+extern "C" NTSTATUS __stdcall NtFreeVirtualMemory( _In_ HANDLE ProcessHandle,
+                                                   _Inout_ PVOID * BaseAddress,
+                                                   _Inout_ PSIZE_T RegionSize,
+                                                   _In_ ULONG FreeType );
+
+inline BOOL __stdcall VirtualFreeEx( _In_ HANDLE hProcess,
+                                     _In_ LPVOID lpAddress,
+                                     _In_ SIZE_T dwSize,
+                                     _In_ DWORD dwFreeType )
+{
+    ULONG_PTR RegionSize = dwSize;
+    PVOID BaseAddress = lpAddress;
+
+    if ( NT_SUCCESS( NtFreeVirtualMemory( hProcess, &BaseAddress, &RegionSize, dwFreeType ) ) )
+        return TRUE;
+
+    return FALSE;
+}
+
+inline BOOL __stdcall VirtualFree( _In_ LPVOID lpAddress,
+                                   _In_ SIZE_T dwSize,
+                                   _In_ DWORD dwFreeType )
+{
+    return VirtualFreeEx( GetCurrentProcess(), lpAddress, dwSize, dwFreeType );
+}
+
 // NtUnmapViewOfSection
 
+extern "C" NTSTATUS __stdcall NtUnmapViewOfSection( _In_ HANDLE ProcessHandle,
+                                                    _In_ PVOID BaseAddress );
 
+// NtQueryVirtualMemory
+
+extern "C" NTSTATUS __stdcall NtQueryVirtualMemory( _In_ HANDLE ProcessHandle,
+                                                    _In_opt_ PVOID BaseAddress,
+                                                    _In_ MEMORY_INFORMATION_CLASS MemoryInformationClass,
+                                                    _Out_ PVOID MemoryInformation,
+                                                    _In_ SIZE_T MemoryInformationLength,
+                                                    _Out_opt_ PSIZE_T ReturnLength );
+
+inline SIZE_T __stdcall VirtualQueryEx( _In_ HANDLE hProcess,
+                                        _In_opt_ LPCVOID lpAddress,
+                                        _Out_ PMEMORY_BASIC_INFORMATION lpBuffer,
+                                        _In_ SIZE_T dwLength )
+{
+    ULONG_PTR ReturnLength = NULL;
+
+    if ( NT_SUCCESS( NtQueryVirtualMemory( hProcess, const_cast<PVOID>(lpAddress), MEMORY_INFORMATION_CLASS::MemoryBasicInformation, lpBuffer, dwLength, &ReturnLength ) ) )
+        return ReturnLength;
+
+    return FALSE;
+}
+
+inline SIZE_T __stdcall VirtualQuery( _In_opt_ LPCVOID lpAddress,
+                                      _Out_ PMEMORY_BASIC_INFORMATION lpBuffer,
+                                      _In_ SIZE_T dwLength )
+{
+    return VirtualQueryEx( GetCurrentProcess(), lpAddress, lpBuffer, dwLength );
+}

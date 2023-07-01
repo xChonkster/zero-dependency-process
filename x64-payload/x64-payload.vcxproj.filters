@@ -4,6 +4,7 @@
     <ClCompile Include="src\winapi\file\file.cpp" />
     <ClCompile Include="src\winapi\string\string.cpp" />
     <ClCompile Include="src\loader\loader.cpp" />
+    <ClCompile Include="src\winapi\paging\microsoft_is_a_failiure.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\winapi\winapi.hpp" />
@@ -12,5 +13,6 @@
   </ItemGroup>
   <ItemGroup>
     <NASM Include="src\winapi\paging\paging.asm" />
+    <NASM Include="src\intrinsic.asm" />
   </ItemGroup>
 </Project>

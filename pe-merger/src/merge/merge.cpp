@@ -107,6 +107,6 @@ void merge( const std::string& host, const std::string& payload )
 	operator delete(payload_virtual_memory);
 
 	// done!
-} // thats better
+}
 
 } // namespace merger

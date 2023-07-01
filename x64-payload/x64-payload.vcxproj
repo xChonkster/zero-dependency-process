@@ -21,10 +21,14 @@
   <ItemGroup>
     <ClCompile Include="src\loader\loader.cpp" />
     <ClCompile Include="src\winapi\file\file.cpp" />
+    <ClCompile Include="src\winapi\paging\microsoft_is_a_failiure.cpp" />
     <ClCompile Include="src\winapi\string\string.cpp" />
+    <NASM Include="src\intrinsic.asm">
+      <FileType>Document</FileType>
+    </NASM>
     <ClInclude Include="src\crt\crt.hpp" />
     <ClInclude Include="src\x64-payload.hpp">
-      <FileType>CppCode</FileType>
+      <FileType>CppHeader</FileType>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

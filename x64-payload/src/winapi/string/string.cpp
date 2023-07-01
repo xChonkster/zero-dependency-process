@@ -4,8 +4,6 @@
 *	RTL string funcs
 */
 
-#pragma once
-
 #include "../winapi.hpp"
 
 extern "C" void __stdcall RtlInitUnicodeString( _Inout_ PUNICODE_STRING DestinationString,

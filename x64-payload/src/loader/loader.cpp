@@ -9,6 +9,7 @@
 #include "../winapi/winapi.hpp"
 #include "../crt/crt.hpp"
 
+
 extern "C" __declspec(dllexport) void create_and_run_64_bit_payload(char* base)
 {
 	const auto dos_header = reinterpret_cast<IMAGE_DOS_HEADER*>(base);
@@ -18,7 +19,15 @@ extern "C" __declspec(dllexport) void create_and_run_64_bit_payload(char* base)
 	IMAGE_OPTIONAL_HEADER64* optional_header = &(nt_headers->OptionalHeader);
 
 	// where were mapping
-	char* memory = reinterpret_cast<char*>(VirtualAlloc( reinterpret_cast<LPVOID>(0x10000000000), optional_header->SizeOfImage, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE));
+	uintptr_t allocation_base = 0x10000000000;
+	char* memory = NULL;
+
+	while ( !memory )
+	{
+		memory = reinterpret_cast<char*>(VirtualAlloc( reinterpret_cast<LPVOID>(allocation_base), optional_header->SizeOfImage, MEM_RESERVE | MEM_COMMIT, PAGE_EXECUTE_READWRITE));
+
+		allocation_base += 0x1000; // +1 page
+	} // fail mechanism
 
 	// get first section
 	auto current_section_header = reinterpret_cast<IMAGE_SECTION_HEADER*>(reinterpret_cast<char*>(optional_header) + file_header->SizeOfOptionalHeader);
@@ -34,5 +43,5 @@ extern "C" __declspec(dllexport) void create_and_run_64_bit_payload(char* base)
 	}
 
 	// call mapped entry point
-	(reinterpret_cast<decltype(&payload_entry_point)>(memory + (reinterpret_cast<uintptr_t>(payload_entry_point) - reinterpret_cast<uintptr_t>(base))))();
+	(reinterpret_cast<decltype(&payload_entry_point)>(memory + (reinterpret_cast<uintptr_t>(payload_entry_point) - reinterpret_cast<uintptr_t>(base))))(reinterpret_cast<uintptr_t>(memory)); // sometimes fails...?
 }

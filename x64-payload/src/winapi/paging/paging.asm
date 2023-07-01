@@ -1,4 +1,4 @@
-section .code
+section .text
 use64
 
 global NtAllocateVirtualMemory
@@ -11,7 +11,27 @@ NtAllocateVirtualMemory:
 global NtProtectVirtualMemory
 NtProtectVirtualMemory:
 	mov r10, rcx
-	mov eax, 0x50 ; syscall id
+	mov eax, 0x50
 	syscall
 	ret
 
+global NtUnmapViewOfSection
+NtUnmapViewOfSection:
+	mov r10, rcx
+	mov eax, 0x2A
+	syscall
+	ret
+	
+global NtQueryVirtualMemory
+NtQueryVirtualMemory:
+	mov r10, rcx
+	mov eax, 0x23
+	syscall
+	ret
+
+global NtFreeVirtualMemory
+NtFreeVirtualMemory:
+	mov r10, rcx
+	mov eax, 0x1E
+	syscall
+	ret
