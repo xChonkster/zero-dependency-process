@@ -6,6 +6,8 @@
 
 #include "../winapi.hpp"
 
+/*
+
 extern "C" NTSTATUS __stdcall NtCreateFile( _Out_ PHANDLE FileHandle,
                                             _In_ ACCESS_MASK DesiredAccess,
                                             _In_ POBJECT_ATTRIBUTES ObjectAttributes,
@@ -41,3 +43,4 @@ extern "C" NTSTATUS __stdcall NtCreateFile( _Out_ PHANDLE FileHandle,
     return 0; // Wow64SystemServiceCall()...;
 }
 
+*/

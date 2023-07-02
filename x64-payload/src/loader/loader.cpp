@@ -43,5 +43,5 @@ extern "C" __declspec(dllexport) void create_and_run_64_bit_payload(char* base)
 	}
 
 	// call mapped entry point
-	(reinterpret_cast<decltype(&payload_entry_point)>(memory + (reinterpret_cast<uintptr_t>(payload_entry_point) - reinterpret_cast<uintptr_t>(base))))(reinterpret_cast<uintptr_t>(memory)); // sometimes fails...?
+	(reinterpret_cast<decltype(&payload_entry_point)>(memory + (reinterpret_cast<uintptr_t>(payload_entry_point) - reinterpret_cast<uintptr_t>(base))))(reinterpret_cast<uintptr_t>(memory));
 }
